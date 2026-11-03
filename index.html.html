@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ps" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>د ښوونځي د مدیریت او ډیټابېس سیستم</title>
+<style>
+:root{--navy:#17324d;--blue:#246b9e;--teal:#159b8c;--bg:#f3f6fa;--ink:#1d2939;--muted:#667085;--line:#e4eaf1;--white:#fff;--red:#d64545}
+*{box-sizing:border-box}body{margin:0;font-family:Tahoma,"Noto Naskh Arabic",Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(120deg,#17324d,#246b9e);color:white;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:13px}.logo{width:55px;height:55px;border-radius:15px;background:#fff;color:var(--navy);display:grid;place-items:center;font-size:29px;font-weight:bold}
+h1{font-size:21px;margin:0 0 5px}.sub{font-size:12px;opacity:.85}.header-actions{display:flex;gap:8px;flex-wrap:wrap}
+button,.btn{border:0;border-radius:8px;padding:10px 14px;cursor:pointer;font:inherit;font-size:13px;background:var(--blue);color:#fff}
+button:hover,.btn:hover{filter:brightness(.94)}.light{background:#fff;color:var(--navy)}.green{background:var(--teal)}.danger{background:var(--red)}.gray{background:#64748b}
+.layout{display:grid;grid-template-columns:235px 1fr;min-height:calc(100vh - 91px)}
+aside{background:#fff;border-left:1px solid var(--line);padding:17px 12px}
+.nav-title{font-size:11px;color:var(--muted);padding:7px 12px}
+nav button{width:100%;text-align:right;background:transparent;color:#344054;padding:11px 13px;margin:2px 0;border-radius:8px}
+nav button.active,nav button:hover{background:#eaf3fa;color:#15527d}
+main{padding:24px;min-width:0}.page{display:none}.page.active{display:block}
+.page-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+h2{font-size:21px;margin:0 0 5px}.hint{color:var(--muted);font-size:12px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.stat,.panel{background:#fff;border:1px solid var(--line);border-radius:13px;padding:17px;box-shadow:0 2px 8px #1d29390a}
+.stat .label{font-size:12px;color:var(--muted)}.stat .num{font-size:27px;font-weight:bold;margin-top:9px;color:var(--navy)}
+.panel{margin-bottom:17px}.panel h3{font-size:15px;margin:0 0 14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+form .fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:12px;color:#475467}
+input,select,textarea{width:100%;border:1px solid #d0d5dd;border-radius:8px;padding:10px;font:inherit;font-size:13px;background:#fff;color:var(--ink)}
+textarea{min-height:75px;resize:vertical}.form-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:650px}th,td{padding:11px 10px;text-align:right;border-bottom:1px solid var(--line);font-size:12px}th{background:#f8fafc;color:#475467;font-weight:bold}
+.actions{display:flex;gap:5px}.actions button{padding:6px 9px;font-size:11px}.empty{text-align:center;color:var(--muted);padding:25px}
+.search{max-width:270px}.badge{display:inline-block;padding:4px 8px;border-radius:20px;background:#e8f6f3;color:#087b6f;font-size:11px}
+.notice{padding:12px 14px;border-radius:9px;background:#fff8e6;color:#805b00;font-size:12px;line-height:1.8;margin-bottom:16px}
+footer{text-align:center;padding:17px;color:var(--muted);font-size:11px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}aside{border-left:0;border-bottom:1px solid var(--line)}nav{display:flex;overflow:auto;gap:4px}nav button{white-space:nowrap;width:auto}.nav-title{display:none}.cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){main{padding:14px}.cards,.grid2{grid-template-columns:1fr}.fields,form .fields{grid-template-columns:1fr 1fr}header{padding:14px}.brand h1{font-size:16px}}
+@media print{header,aside,.no-print,.form-panel,footer{display:none!important}.layout{display:block}main{padding:0}.page{display:none!important}.page.active{display:block!important}.panel,.stat{box-shadow:none}}
+</style>
+</head>
+<body>
+<header>
+ <div class="brand"><div class="logo">🏫</div><div><h1>د ښوونځي د مدیریت او ډیټابېس سیستم</h1><div class="sub">د زده‌کوونکو، ښوونکو، حاضري، فیسونو او ازموینو منظم مدیریت</div></div></div>
+ <div class="header-actions no-print"><button class="light" onclick="exportData()">⬇ بیک‌اپ ډاونلوډ</button><button class="light" onclick="document.getElementById('importFile').click()">⬆ بیک‌اپ راوړل</button><input id="importFile" type="file" accept=".json" hidden onchange="importData(event)"></div>
+</header>
+<div class="layout">
+<aside class="no-print"><div class="nav-title">اصلي مېنو</div><nav id="nav">
+<button class="active" data-page="dashboard">🏠 عمومي پاڼه</button>
+<button data-page="students">👨‍🎓 زده‌کوونکي</button><button data-page="teachers">👩‍🏫 ښوونکي</button>
+<button data-page="classes">🏫 ټولګي او صنفونه</button><button data-page="attendance">📋 حاضري</button>
+<button data-page="fees">💰 فیسونه او تادیات</button><button data-page="exams">📝 ازموینې او نمرې</button>
+<button data-page="expenses">📉 لګښتونه</button><button data-page="reports">📊 راپورونه</button><button data-page="settings">⚙️ تنظیمات</button>
+</nav></aside>
+<main>
+<section id="dashboard" class="page active">
+ <div class="page-head"><div><h2>عمومي معلومات</h2><div class="hint">د ښوونځي د فعالیت لنډ راپور</div></div><span class="badge" id="today"></span></div>
+ <div class="cards">
+ <div class="stat"><div class="label">ټول زده‌کوونکي</div><div class="num" id="sCount">۰</div></div>
+ <div class="stat"><div class="label">ټول ښوونکي</div><div class="num" id="tCount">۰</div></div>
+ <div class="stat"><div class="label">ټول صنفونه</div><div class="num" id="cCount">۰</div></div>
+ <div class="stat"><div class="label">د ثبت شوو حاضریو شمېر</div><div class="num" id="aCount">۰</div></div>
+ </div>
+ <div class="grid2"><div class="panel"><h3>وروستي ثبت شوي زده‌کوونکي</h3><div id="recentStudents"></div></div><div class="panel"><h3>د مالي وضعیت لنډیز</h3><div id="financeSummary"></div></div></div>
+ <div class="notice">مهم: دا نسخه معلومات په همدې کمپیوټر او همدې براوزر کې ساتي. د معلوماتو د خوندي ساتلو لپاره په منظم ډول «بیک‌اپ ډاونلوډ» وکاروئ. د څو کمپیوټرونو ترمنځ ګډ آنلاین ډیټابېس نه دی.</div>
+</section>
+
+<section id="students" class="page">
+ <div class="page-head"><div><h2>د زده‌کوونکو مدیریت</h2><div class="hint">نوی زده‌کوونکی ثبت، سمون او حذف کړئ</div></div><input class="search" placeholder="د نوم یا ID له مخې لټون..." oninput="renderTable('students',this.value)"></div>
+ <div class="panel form-panel"><h3 id="studentsFormTitle">د زده‌کوونکي ثبت</h3><form id="studentsForm"><div class="fields">
+ <div class="field"><label>بشپړ نوم *</label><input name="name" required></div><div class="field"><label>د پلار نوم</label><input name="father"></div><div class="field"><label>د زده‌کوونکي ID</label><input name="sid" placeholder="اتومات که تش پرېښودل شي"></div>
+ <div class="field"><label>ټولګی</label><select name="classId" id="studentClass"></select></div><div class="field"><label>د زېږېدو نېټه</label><input name="dob" type="date"></div><div class="field"><label>جنس</label><select name="gender"><option>نارینه</option><option>ښځینه</option></select></div>
+ <div class="field"><label>د اړیکې شمېره</label><input name="phone"></div><div class="field"><label>د سرپرست نوم</label><input name="guardian"></div><div class="field"><label>د شاملېدو نېټه</label><input name="enroll" type="date"></div>
+ <div class="field"><label>پته</label><input name="address"></div><div class="field"><label>حالت</label><select name="status"><option>فعال</option><option>غیرفعال</option><option>فارغ</option></select></div>
+ </div><div class="form-actions"><button class="green">ثبت / خوندي کول</button><button type="button" class="gray" onclick="resetForm('students')">پاکول</button></div></form></div>
+ <div class="panel"><h3>د زده‌کوونکو لېست</h3><div class="table-wrap" id="studentsTable"></div></div>
+</section>
+
+<section id="teachers" class="page">
+ <div class="page-head"><div><h2>د ښوونکو مدیریت</h2><div class="hint">د ښوونکو شخصي او کاري معلومات</div></div><input class="search" placeholder="د نوم له مخې لټون..." oninput="renderTable('teachers',this.value)"></div>
+ <div class="panel form-panel"><h3>د ښوونکي ثبت</h3><form id="teachersForm"><div class="fields">
+ <div class="field"><label>بشپړ نوم *</label><input name="name" required></div><div class="field"><label>د پلار نوم</label><input name="father"></div><div class="field"><label>د ښوونکي ID</label><input name="tid"></div>
+ <div class="field"><label>مضمون / تخصص</label><input name="subject"></div><div class="field"><label>د اړیکې شمېره</label><input name="phone"></div><div class="field"><label>د ګومارنې نېټه</label><input name="hire" type="date"></div>
+ <div class="field"><label>میاشتنی معاش</label><input name="salary" type="number" min="0"></div><div class="field"><label>حالت</label><select name="status"><option>فعال</option><option>غیرفعال</option></select></div>
+ </div><div class="form-actions"><button class="green">ثبت / خوندي کول</button><button type="button" class="gray" onclick="resetForm('teachers')">پاکول</button></div></form></div>
+ <div class="panel"><h3>د ښوونکو لېست</h3><div class="table-wrap" id="teachersTable"></div></div>
+</section>
+
+<section id="classes" class="page">
+ <div class="page-head"><div><h2>ټولګي او صنفونه</h2><div class="hint">د ټولګیو نوم، ښوونکی او ظرفیت ثبت کړئ</div></div></div>
+ <div class="panel form-panel"><h3>د ټولګي ثبت</h3><form id="classesForm"><div class="fields">
+ <div class="field"><label>د ټولګي نوم *</label><input name="name" required placeholder="لکه: اووم الف"></div><div class="field"><label>ټولګی / درجه</label><input name="grade" placeholder="اووم"></div><div class="field"><label>برخه / شفټ</label><select name="shift"><option>سهار</option><option>مازدیګر</option></select></div>
+ <div class="field"><label>ټولګیوال ښوونکی</label><select name="teacherId" id="classTeacher"></select></div><div class="field"><label>ظرفیت</label><input name="capacity" type="number" min="1"></div><div class="field"><label>تعلیمي کال</label><input name="year" placeholder="۱۴۰۵"></div>
+ </div><div class="form-actions"><button class="green">ټولګی ثبت کړه</button><button type="button" class="gray" onclick="resetForm('classes')">پاکول</button></div></form></div>
+ <div class="panel"><h3>د ټولګیو لېست</h3><div class="table-wrap" id="classesTable"></div></div>
+</section>
+
+<section id="attendance" class="page">
+ <div class="page-head"><div><h2>د زده‌کوونکو حاضري</h2><div class="hint">د هرې ورځې حاضري ثبت کړئ</div></div></div>
+ <div class="panel form-panel"><h3>د حاضرۍ ثبت</h3><form id="attendanceForm"><div class="fields">
+ <div class="field"><label>زده‌کوونکی *</label><select name="studentId" id="attendanceStudent" required></select></div><div class="field"><label>نېټه *</label><input name="date" type="date" required></div><div class="field"><label>حالت</label><select name="status"><option>حاضر</option><option>غایب</option><option>ناوخته</option><option>رخصت</option></select></div><div class="field"><label>یادښت</label><input name="note"></div>
+ </div><div class="form-actions"><button class="green">حاضري ثبت کړه</button></div></form></div>
+ <div class="panel"><h3>د حاضرۍ ریکارډونه</h3><div class="table-wrap" id="attendanceTable"></div></div>
+</section>
+
+<section id="fees" class="page">
+ <div class="page-head"><div><h2>فیسونه او تادیات</h2><div class="hint">د زده‌کوونکو فیس او ورکړې ثبتول</div></div></div>
+ <div class="panel form-panel"><h3>د فیس تادیې ثبت</h3><form id="feesForm"><div class="fields">
+ <div class="field"><label>زده‌کوونکی *</label><select name="studentId" id="feeStudent" required></select></div><div class="field"><label>د فیس ډول</label><select name="type"><option>میاشتنی فیس</option><option>د داخلې فیس</option><option>د ازموینې فیس</option><option>نور</option></select></div><div class="field"><label>مبلغ (افغانۍ) *</label><input name="amount" type="number" min="1" required></div>
+ <div class="field"><label>د تادیې نېټه *</label><input name="date" type="date" required></div><div class="field"><label>رسید نمبر</label><input name="receipt"></div><div class="field"><label>یادښت</label><input name="note"></div>
+ </div><div class="form-actions"><button class="green">تادیه ثبت کړه</button></div></form></div>
+ <div class="panel"><h3>د تادیاتو لېست</h3><div class="table-wrap" id="feesTable"></div></div>
+</section>
+
+<section id="exams" class="page">
+ <div class="page-head"><div><h2>ازموینې او نمرې</h2><div class="hint">د زده‌کوونکو د مضمونونو نمرې ثبت کړئ</div></div></div>
+ <div class="panel form-panel"><h3>د نمرو ثبت</h3><form id="examsForm"><div class="fields">
+ <div class="field"><label>زده‌کوونکی *</label><select name="studentId" id="examStudent" required></select></div><div class="field"><label>مضمون *</label><input name="subject" required></div><div class="field"><label>ازموینه</label><select name="exam"><option>منځنۍ ازموینه</option><option>کلنۍ ازموینه</option><option>میاشتنۍ ازموینه</option><option>ازمایښتي</option></select></div>
+ <div class="field"><label>ترلاسه شوې نمرې *</label><input name="score" type="number" min="0" required></div><div class="field"><label>ټولې نمرې *</label><input name="total" type="number" min="1" required></div><div class="field"><label>نېټه</label><input name="date" type="date"></div>
+ </div><div class="form-actions"><button class="green">نمرې ثبت کړه</button></div></form></div>
+ <div class="panel"><h3>د نمرو ریکارډونه</h3><div class="table-wrap" id="examsTable"></div></div>
+</section>
+
+<section id="expenses" class="page">
+ <div class="page-head"><div><h2>د ښوونځي لګښتونه</h2><div class="hint">د ښوونځي مالي مصارف ثبتول</div></div></div>
+ <div class="panel form-panel"><h3>د لګښت ثبت</h3><form id="expensesForm"><div class="fields">
+ <div class="field"><label>د لګښت عنوان *</label><input name="title" required></div><div class="field"><label>کټګوري</label><select name="category"><option>معاشات</option><option>برېښنا او اوبه</option><option>قرطاسیه</option><option>ترمیمات</option><option>نور</option></select></div><div class="field"><label>مبلغ (افغانۍ) *</label><input name="amount" type="number" min="1" required></div>
+ <div class="field"><label>نېټه *</label><input name="date" type="date" required></div><div class="field"><label>مسؤول</label><input name="person"></div><div class="field"><label>یادښت</label><input name="note"></div>
+ </div><div class="form-actions"><button class="green">لګښت ثبت کړه</button></div></form></div>
+ <div class="panel"><h3>د لګښتونو لېست</h3><div class="table-wrap" id="expensesTable"></div></div>
+</section>
+
+<section id="reports" class="page">
+ <div class="page-head"><div><h2>راپورونه</h2><div class="hint">د ثبت شوو معلوماتو لنډیز او چاپ</div></div><button class="no-print" onclick="window.print()">🖨 راپور چاپ کړه</button></div>
+ <div class="cards"><div class="stat"><div class="label">ټولې فیس تادیې</div><div class="num" id="rFees">۰</div></div><div class="stat"><div class="label">ټول لګښتونه</div><div class="num" id="rExpenses">۰</div></div><div class="stat"><div class="label">خالص توپیر</div><div class="num" id="rNet">۰</div></div><div class="stat"><div class="label">د نمرو ریکارډونه</div><div class="num" id="rExams">۰</div></div></div>
+ <div class="panel"><h3>د زده‌کوونکو د ټولګیو له مخې شمېر</h3><div id="classReport"></div></div>
+ <div class="panel"><h3>د حاضري لنډیز</h3><div id="attendanceReport"></div></div>
+</section>
+
+<section id="settings" class="page">
+ <div class="page-head"><div><h2>تنظیمات او معلومات</h2><div class="hint">د ښوونځي عمومي پېژندنه او د معلوماتو ساتنه</div></div></div>
+ <div class="panel"><h3>د ښوونځي معلومات</h3><form id="settingsForm"><div class="fields">
+ <div class="field"><label>د ښوونځي نوم</label><input name="school" placeholder="د ښوونځي نوم"></div><div class="field"><label>د مدیر نوم</label><input name="manager"></div><div class="field"><label>د اړیکې شمېره</label><input name="phone"></div><div class="field"><label>پته</label><input name="address"></div><div class="field"><label>تعلیمي کال</label><input name="year" placeholder="۱۴۰۵"></div>
+ </div><div class="form-actions"><button class="green">معلومات خوندي کړه</button></div></form></div>
+ <div class="panel"><h3>د ډیټابېس ساتنه</h3><p class="hint">بیک‌اپ د JSON فایل په بڼه ډاونلوډ کړئ. که براوزر پاک شي یا کمپیوټر بدل شي، بیک‌اپ بېرته راوړئ.</p><div class="form-actions"><button onclick="exportData()">⬇ بیک‌اپ ډاونلوډ</button><button class="danger" onclick="clearAll()">ټول معلومات پاکول</button></div></div>
+ <div class="notice">دا د یوه کمپیوټر لپاره محلي HTML سیستم دی. د رسمي ښوونځي د څو کاروونکو، شبکې، رمزونو او مرکزي ډیټابېس لپاره جلا سرور او خوندي ډیټابېس ته اړتیا ده.</div>
+</section>
+<footer>د ښوونځي د مدیریت سیستم | نسخه ۱.۰</footer>
+</main></div>
+<script>
+const keys=['students','teachers','classes','attendance','fees','exams','expenses'];
+let db={}; keys.forEach(k=>db[k]=JSON.parse(localStorage.getItem('school_'+k)||'[]'));
+db.settings=JSON.parse(localStorage.getItem('school_settings')||'{}');
+let editing={};
+const $=id=>document.getElementById(id);
+const today=new Date().toISOString().slice(0,10);
+$('today').textContent='نن: '+today;
+const fa=n=>Number(n||0).toLocaleString('en-US')+' افغانۍ';
+function save(){keys.forEach(k=>localStorage.setItem('school_'+k,JSON.stringify(db[k])));localStorage.setItem('school_settings',JSON.stringify(db.settings));refresh();}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function nameOf(type,id){let x=db[type].find(a=>a.id===id);return x?x.name:'—';}
+function options(id,arr,label){$(id).innerHTML='<option value="">— وټاکئ —</option>'+arr.map(x=>`<option value="${esc(x.id)}">${esc(label(x))}</option>`).join('');}
+function refreshSelects(){options('studentClass',db.classes,x=>x.name);options('classTeacher',db.teachers,x=>x.name);['attendanceStudent','feeStudent','examStudent'].forEach(id=>options(id,db.students,x=>x.name+' ('+(x.sid||x.id)+')'));}
+function showPage(p){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===p));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===p));}
+$('nav').addEventListener('click',e=>{let b=e.target.closest('button[data-page]');if(b)showPage(b.dataset.page);});
+function table(type,headers,rows){if(!rows.length)return '<div class="empty">تر اوسه معلومات نه دي ثبت شوي.</div>';return '<table><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'<th>عملیات</th></tr></thead><tbody>'+rows.map(x=>'<tr>'+x.cells.map(c=>'<td>'+c+'</td>').join('')+`<td><div class="actions"><button class="gray" onclick="editItem('${type}','${x.id}')">سمون</button><button class="danger" onclick="deleteItem('${type}','${x.id}')">حذف</button></div></td></tr>`).join('')+'</tbody></table>';}
+function renderTable(type,q=''){
+ let arr=db[type].filter(x=>JSON.stringify(x).toLowerCase().includes(q.toLowerCase()));
+ let rows=arr.map(x=>({id:x.id,cells:rowCells(type,x)}));
+ $(type+'Table').innerHTML=table(type,headers[type],rows);
+}
+const headers={students:['ID','نوم','د پلار نوم','ټولګی','شمېره','حالت'],teachers:['ID','نوم','تخصص','شمېره','معاش','حالت'],classes:['نوم','درجه','شفټ','ښوونکی','ظرفیت','کال'],attendance:['زده‌کوونکی','نېټه','حالت','یادښت'],fees:['زده‌کوونکی','ډول','مبلغ','نېټه','رسید'],exams:['زده‌کوونکی','مضمون','ازموینه','نمرې','سلنه','نېټه'],expenses:['عنوان','کټګوري','مبلغ','نېټه','مسؤول']};
+function rowCells(t,x){switch(t){
+case'students':return [esc(x.sid||x.id),esc(x.name),esc(x.father),esc(nameOf('classes',x.classId)),esc(x.phone),esc(x.status)];
+case'teachers':return [esc(x.tid||x.id),esc(x.name),esc(x.subject),esc(x.phone),fa(x.salary),esc(x.status)];
+case'classes':return [esc(x.name),esc(x.grade),esc(x.shift),esc(nameOf('teachers',x.teacherId)),esc(x.capacity),esc(x.year)];
+case'attendance':return [esc(nameOf('students',x.studentId)),esc(x.date),esc(x.status),esc(x.note)];
+case'fees':return [esc(nameOf('students',x.studentId)),esc(x.type),fa(x.amount),esc(x.date),esc(x.receipt)];
+case'exams':return [esc(nameOf('students',x.studentId)),esc(x.subject),esc(x.exam),esc(x.score)+' / '+esc(x.total),((Number(x.score)/Number(x.total))*100).toFixed(1)+'%',esc(x.date)];
+case'expenses':return [esc(x.title),esc(x.category),fa(x.amount),esc(x.date),esc(x.person)];
+}}
+function resetForm(t){$(t+'Form').reset();editing[t]=null;if($(t+'FormTitle'))$('studentsFormTitle').textContent='د زده‌کوونکي ثبت';}
+function formData(form){return Object.fromEntries(new FormData(form).entries());}
+function setupForm(t){$(t+'Form').addEventListener('submit',e=>{e.preventDefault();let data=formData(e.target);if(t==='exams'&&Number(data.score)>Number(data.total)){alert('ترلاسه شوې نمرې له ټولو نمرو زیاتې نه شي کېدای.');return;}
+if(t==='attendance'){let dup=db.attendance.find(x=>x.studentId===data.studentId&&x.date===data.date);if(dup){alert('د دې زده‌کوونکي حاضري په دې نېټه مخکې ثبت شوې ده.');return;}}
+if(editing[t]){let i=db[t].findIndex(x=>x.id===editing[t]);db[t][i]={...db[t][i],...data};}else db[t].push({id: t.slice(0,2).toUpperCase()+'-'+Date.now(),...data});
+editing[t]=null;e.target.reset();if(t==='students')$('studentsFormTitle').textContent='د زده‌کوونکي ثبت';save();});}
+keys.forEach(k=>{if(k!=='settings')setupForm(k);});
+function editItem(t,id){let x=db[t].find(a=>a.id===id);if(!x)return;editing[t]=id;let f=$(t+'Form');Object.keys(x).forEach(k=>{if(f.elements[k])f.elements[k].value=x[k]??'';});if(t==='students')$('studentsFormTitle').textContent='د زده‌کوونکي معلومات سمول';showPage(t);f.scrollIntoView({behavior:'smooth'});}
+function deleteItem(t,id){if(!confirm('ایا دا ریکارډ حذف کول غواړئ؟'))return;db[t]=db[t].filter(x=>x.id!==id);save();}
+function refresh(){
+ refreshSelects();keys.forEach(k=>renderTable(k));
+ $('sCount').textContent=db.students.length;$('tCount').textContent=db.teachers.length;$('cCount').textContent=db.classes.length;$('aCount').textContent=db.attendance.length;
+ $('recentStudents').innerHTML=db.students.slice(-5).reverse().map(s=>`<p>👨‍🎓 ${esc(s.name)} <span class="hint">— ${esc(nameOf('classes',s.classId))}</span></p>`).join('')||'<div class="empty">زده‌کوونکي نشته</div>';
+ let income=db.fees.reduce((a,x)=>a+Number(x.amount||0),0),out=db.expenses.reduce((a,x)=>a+Number(x.amount||0),0);
+ $('financeSummary').innerHTML=`<p>ټولې تادیې: <b>${fa(income)}</b></p><p>ټول لګښتونه: <b>${fa(out)}</b></p><p>توپیر: <b>${fa(income-out)}</b></p>`;
+ $('rFees').textContent=fa(income);$('rExpenses').textContent=fa(out);$('rNet').textContent=fa(income-out);$('rExams').textContent=db.exams.length;
+ $('classReport').innerHTML=table('students',['ټولګی','د زده‌کوونکو شمېر'],db.classes.map(c=>({id:c.id,cells:[esc(c.name),db.students.filter(s=>s.classId===c.id).length]})));
+ let counts=['حاضر','غایب','ناوخته','رخصت'].map(s=>[s,db.attendance.filter(a=>a.status===s).length]);
+ $('attendanceReport').innerHTML='<table><tr><th>حالت</th><th>شمېر</th></tr>'+counts.map(x=>`<tr><td>${x[0]}</td><td>${x[1]}</td></tr>`).join('')+'</table>';
+}
+$('settingsForm').addEventListener('submit',e=>{e.preventDefault();db.settings=formData(e.target);save();alert('د ښوونځي معلومات خوندي شول.');});
+function loadSettings(){Object.keys(db.settings).forEach(k=>{if($('settingsForm').elements[k])$('settingsForm').elements[k].value=db.settings[k];});}
+function exportData(){let blob=new Blob([JSON.stringify({db,version:1,exported:new Date().toISOString()},null,2)],{type:'application/json'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='school-database-backup.json';a.click();URL.revokeObjectURL(a.href);}
+function importData(e){let file=e.target.files[0];if(!file)return;let r=new FileReader();r.onload=()=>{try{let obj=JSON.parse(r.result);if(!obj.db)throw Error();if(!confirm('اوسني معلومات به د بیک‌اپ له معلوماتو سره بدل شي. دوام ورکوئ؟'))return;db=obj.db;keys.forEach(k=>{if(!Array.isArray(db[k]))db[k]=[]});db.settings=db.settings||{};save();loadSettings();alert('بیک‌اپ په بریالیتوب راوړل شو.');}catch(err){alert('دا د سیستم معتبر بیک‌اپ نه دی.');}};r.readAsText(file);e.target.value='';}
+function clearAll(){if(!confirm('خبرداری! ټول زده‌کوونکي، ښوونکي، حاضري او نور معلومات به حذف شي. ډاډه یاست؟'))return;if(!confirm('وروستی تایید: د معلوماتو بیک‌اپ مو اخیستی؟'))return;keys.forEach(k=>db[k]=[]);db.settings={};save();loadSettings();}
+loadSettings();refresh();
+</script>
+</body></html>
